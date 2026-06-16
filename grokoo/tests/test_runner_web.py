@@ -42,7 +42,7 @@ class TestRunnerArgv(TransactionCase):
             "cli_path": "/usr/local/bin/grok",
             "model": "grok-4",
             "output_format": "streaming-json",
-            "core_tools": "",
+            "disallowed_tools": "",
             "extra_args": [],
             "allowed_tools": allowed_tools,
             "web_builtins": web_builtins,
@@ -69,17 +69,24 @@ class TestRunnerArgv(TransactionCase):
         self.assertIn("--always-approve", argv)
         self.assertEqual(argv[argv.index("--model") + 1], "grok-4")
         self.assertEqual(argv[argv.index("--prompt-file") + 1], self.prompt_path)
-        # Built-in tools are an allowlist of file reads only; web search is off.
-        tools = argv[argv.index("--tools") + 1].split(",")
-        self.assertIn("read_file", tools)
-        self.assertNotIn("web_search", tools)
+        # Dangerous built-ins are denied; read_file/view_image are NOT denied so
+        # the model can still open attachments. Web search is off when ungranted.
+        deny = argv[argv.index("--disallowed-tools") + 1].split(",")
+        self.assertIn("run_terminal_cmd", deny)
+        self.assertIn("write_file", deny)
+        self.assertIn("web_search", deny)
+        self.assertNotIn("read_file", deny)
+        self.assertNotIn("view_image", deny)
+        # We must never pass --tools (its allowlist trips grok's agent-build bug).
+        self.assertNotIn("--tools", argv)
         self.assertIn("--disable-web-search", argv)
 
-    def test_web_grant_allowlists_web_tools(self):
+    def test_web_grant_keeps_web_tools_off_denylist(self):
         argv = self.runner._build_argv(
             self._ctx(["orm_read", "web_search"]), self.prompt_path)
-        tools = argv[argv.index("--tools") + 1].split(",")
-        self.assertIn("web_search", tools)
+        deny = argv[argv.index("--disallowed-tools") + 1].split(",")
+        self.assertNotIn("web_search", deny)
+        self.assertNotIn("web_fetch", deny)
         self.assertNotIn("--disable-web-search", argv)
 
     def test_resume_turn_passes_session_id(self):

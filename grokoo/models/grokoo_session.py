@@ -44,8 +44,8 @@ WRITE_TOOLS = [
 # ORM tools these are NOT served by the odoo MCP bridge — they are the CLI's own
 # built-ins, withheld by default. They are opt-in per user (granted via
 # res.users.grokoo_tool_ids) and deliberately kept OUT of READ_TOOLS so an empty
-# selection never auto-grants web access. The runner adds them to the built-in
-# tool allowlist (see grokoo_runner.WEB_TOOL_BUILTINS) only when granted.
+# selection never auto-grants web access. The runner keeps them OFF the built-in
+# tool denylist (see grokoo_runner.WEB_TOOL_BUILTINS) only when granted.
 WEB_TOOLS = ["web_fetch", "web_search"]
 
 ALL_TOOLS = READ_TOOLS + WRITE_TOOLS + WEB_TOOLS
@@ -59,9 +59,10 @@ READONLY_TOOL_SET = set(READ_TOOLS) | set(WEB_TOOLS)
 DEFAULT_ACTION_METHOD_PATTERNS = ["action_*", "button_*"]
 
 # The Grok CLI's built-in tool surface is restricted via the per-session
-# `--tools` allowlist the runner passes (file reads only). The authoritative
-# boundary stays server-side: every Odoo mutation goes through the loopback-only,
-# token-gated tool endpoints and runs under the user's own ACLs.
+# `--disallowed-tools` denylist the runner passes (everything but file reads is
+# withheld). The authoritative boundary stays server-side: every Odoo mutation
+# goes through the loopback-only, token-gated tool endpoints and runs under the
+# user's own ACLs.
 
 # Fallback glob for the grok binary when it is not on PATH and no explicit
 # `grokoo.cli_path` is set. The official installer puts it at ~/.grok/bin/grok;

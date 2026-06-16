@@ -60,22 +60,26 @@ SYSTEM_PROMPT = (
     "right now, please retry.' and nothing else — do not guess."
 )
 
-# Built-in Grok CLI tools the model is allowed to keep. We restrict the built-in
-# surface to file READS (so it can open user attachments in the workspace) —
-# everything else (run_terminal_cmd, write_file, edit, search_replace, glob,
-# grep, list_dir, task, memory, web tools) is withheld, leaving the gated Odoo
-# MCP tools as the only way to touch the database. Web tools are added here only
-# when granted. `view_image` lets the model see attached images.
+# Built-in Grok CLI tools to WITHHOLD via `--disallowed-tools` (a denylist). We
+# keep only the file-read tools (`read_file`, `view_image`) so the model can open
+# the user's attachments; everything that could touch the shell, the filesystem,
+# or cross-session memory is removed, leaving the gated Odoo MCP tools as the
+# only way to reach the database. Web tools are removed too, unless granted.
 #
-# Grok's `--tools` flag is an ALLOWLIST of *built-in* tools ("Only listed tools
-# are available", headless-only). It does NOT touch MCP tools — those come from
-# the `[mcp_servers.*]` block in the per-session .grok/config.toml the runner
-# writes — so allowlisting only the read tools keeps the Odoo MCP tools fully
-# available to the model. (This is unlike gemini-cli, where a core allowlist
-# also hid MCP tools.) Tune the built-in names via the grokoo.core_tools system
-# parameter if a future CLI build renames them.
-CORE_TOOLS_BASE = ["read_file", "view_image"]
-# Grok's built-in web tool names, mapped from our per-user web grants.
+# We use a denylist (`--disallowed-tools`) rather than an allowlist (`--tools`):
+# in grok 0.2.x, passing `--tools` makes the CLI validate the *full* default
+# agent — including `run_terminal_cmd`, whose shipped config is internally
+# inconsistent (`auto_background_on_timeout` true while `enabled_background` is
+# false) — which aborts session creation with an "agent building failed"
+# RequirementError. A denylist removes the unwanted tools without tripping that
+# validation. MCP tools are unaffected by either flag. Tune the names via the
+# grokoo.disallowed_tools system parameter if a future CLI build renames them.
+DENY_TOOLS_BASE = [
+    "run_terminal_cmd", "bash", "write_file", "edit", "search_replace",
+    "glob", "grep", "list_dir", "task", "memory", "edit_memory",
+    "conversation_search",
+]
+# Grok's built-in web tool names; withheld unless the user is granted web access.
 WEB_TOOL_BUILTINS = {"web_fetch": "web_fetch", "web_search": "web_search"}
 
 
@@ -99,8 +103,8 @@ class AiAssistantRunner(models.AbstractModel):
         output_format = session._config("output_format", "streaming-json")
         timeout_s = int(session._config("timeout_s", 900))
         base_url = session._config("base_url", "http://127.0.0.1:8069")
-        # Optional override of the allowlisted built-in tool set (comma-separated).
-        core_tools = (session._config("core_tools", "") or "").strip()
+        # Optional override of the withheld built-in tool set (comma-separated).
+        disallowed_tools = (session._config("disallowed_tools", "") or "").strip()
         # Optional extra CLI args (space-separated) for tuning per deployment /
         # CLI version, e.g. "--permission-mode bypassPermissions".
         extra_args = (session._config("extra_args", "") or "").split()
@@ -141,7 +145,7 @@ class AiAssistantRunner(models.AbstractModel):
             "uploads_dir": uploads_dir,
             "model": model,
             "output_format": output_format,
-            "core_tools": core_tools,
+            "disallowed_tools": disallowed_tools,
             "extra_args": extra_args,
             "timeout_s": timeout_s,
             "base_url": base_url,
@@ -532,27 +536,30 @@ class AiAssistantRunner(models.AbstractModel):
         can never be mistaken for a CLI flag.
 
         `--always-approve` auto-approves tool executions (there is no TTY to
-        approve them in headless mode); combined with the built-in tool allowlist
-        (`--tools`, file reads only) the only capabilities the model has are the
-        loopback-only, token-gated Odoo MCP tools (which run under the acting
-        user's own ACLs) plus reading the user's attachments in the workspace.
-        `--output-format` + `--prompt-file` put the CLI in single-turn headless
-        mode; `-r <id>` resumes the prior Grok session when we have its id.
+        approve them in headless mode); combined with the built-in tool denylist
+        (`--disallowed-tools` — everything but file reads is withheld) the only
+        capabilities the model has are the loopback-only, token-gated Odoo MCP
+        tools (which run under the acting user's own ACLs) plus reading the
+        user's attachments in the workspace. `--output-format` + `--prompt-file`
+        put the CLI in single-turn headless mode; `-r <id>` resumes the prior
+        Grok session when we have its id.
         """
         argv = [ctx["cli_path"], "--output-format", ctx["output_format"]]
         if ctx["model"]:
             argv += ["--model", ctx["model"]]
         argv += ["--always-approve"]
-        # Allowlist of built-in tools (file reads + any granted web tools). MCP
-        # tools are unaffected by --tools, so the Odoo tools stay available.
-        if ctx["core_tools"]:
-            base = [t.strip() for t in ctx["core_tools"].split(",") if t.strip()]
+        # Withhold dangerous built-ins via a denylist (keeps read_file/view_image
+        # and the Odoo MCP tools). We deliberately avoid the `--tools` allowlist:
+        # it makes grok validate the full default agent and aborts on
+        # run_terminal_cmd's inconsistent shipped config (see DENY_TOOLS_BASE).
+        if ctx["disallowed_tools"]:
+            deny = [t.strip() for t in ctx["disallowed_tools"].split(",") if t.strip()]
         else:
-            base = list(CORE_TOOLS_BASE)
-        allowed_builtins = base + ctx["web_builtins"]
-        argv += ["--tools", ",".join(allowed_builtins)]
-        # Belt-and-suspenders: turn web search/fetch off unless explicitly granted
-        # (they are also absent from the allowlist above).
+            deny = list(DENY_TOOLS_BASE)
+            if not ctx["web_builtins"]:
+                deny += sorted(WEB_TOOL_BUILTINS.values())
+        argv += ["--disallowed-tools", ",".join(deny)]
+        # Belt-and-suspenders: turn web search/fetch off unless explicitly granted.
         if not ctx["web_builtins"]:
             argv += ["--disable-web-search"]
         argv += ["--prompt-file", prompt_path]

@@ -143,7 +143,7 @@ vulnerability.
 | `model` | Grok model id (blank = your account's default model) |
 | `auth_mode` | `oauth_import` (imported `grok login`) or `api_key` |
 | `api_key` | Optional shared xAI API key fallback |
-| `core_tools` | Override the allowlisted built-in tools (default `read_file,view_image`) |
+| `disallowed_tools` | Override the withheld built-in tools (denylist; default removes shell/write/edit/etc.) |
 | `output_format` | `streaming-json` (real-time) or `json` (final only, more compatible) |
 | `max_turns`, `timeout_s` | Per-turn limits |
 | `home_root`, `scratch_root` | Per-user `.grok` home and CLI scratch directories |

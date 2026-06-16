@@ -27,7 +27,8 @@ of CICDoo's Claudoo / Codexoo / Geminoo, built for the Grok CLI.)
   database. An optional shared API key can be configured as a fallback.
 - **Restricted engine** — Grok runs headless (`grok --output-format
   streaming-json --always-approve`) with its built-in shell / write / network
-  tools withheld via the `--tools` allowlist (file reads only, for attachments),
+  tools withheld via the `--disallowed-tools` denylist (file reads only, for
+  attachments),
   and tool calls auto-approved only for the trusted Odoo MCP server. The Odoo
   MCP server is declared in a per-session `.grok/config.toml`; the bridge token
   is passed via the process environment and never written to a file. The

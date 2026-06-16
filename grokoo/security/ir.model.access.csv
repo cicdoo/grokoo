@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ai_session_user,ai.session.user,model_grokoo_session,group_ai_user,1,1,1,1
+access_ai_message_user,ai.message.user,model_grokoo_message,group_ai_user,1,1,1,1
+access_ai_toollog_manager,ai.toollog.manager,model_grokoo_tool_log,group_ai_manager,1,0,0,0
+access_ai_session_manager,ai.session.manager,model_grokoo_session,group_ai_manager,1,1,1,1
+access_ai_message_manager,ai.message.manager,model_grokoo_message,group_ai_manager,1,1,1,1
+access_ai_tool_user,ai.tool.user,model_grokoo_tool,group_ai_user,1,0,0,0
+access_ai_tool_manager,ai.tool.manager,model_grokoo_tool,group_ai_manager,1,1,1,1

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.grokoo</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Grokoo AI Assistant" string="Grokoo AI Assistant"
+                     name="grokoo" logo="/grokoo/static/description/icon.png">
+                    <block title="Grok CLI" name="ai_cli">
+                        <setting string="CLI Path"
+                                 help="Absolute path to the grok binary. Empty = PATH/auto-detect.">
+                            <field name="grokoo_cli_path" placeholder="auto-detect"/>
+                        </setting>
+                        <setting string="Model">
+                            <field name="grokoo_model"/>
+                        </setting>
+                        <setting string="Output Format"
+                                 help="streaming-json streams replies in real time; json returns a single final answer per turn (more compatible).">
+                            <field name="grokoo_output_format"/>
+                        </setting>
+                        <setting string="Max Turns">
+                            <field name="grokoo_max_turns"/>
+                        </setting>
+                        <setting string="Run Timeout (s)">
+                            <field name="grokoo_timeout_s"/>
+                        </setting>
+                        <setting string="Max Concurrent Runs"
+                                 help="Cap on AI runs executing at once across all users. Each run is a separate subprocess; this bounds peak memory. 0 = unlimited.">
+                            <field name="grokoo_max_concurrent_runs"/>
+                        </setting>
+                        <setting string="Per-User Grok Home Root"
+                                 help="Each user gets a private &lt;root&gt;/&lt;uid&gt;/.grok with their own credentials.">
+                            <field name="grokoo_home_root"/>
+                        </setting>
+                    </block>
+                    <block title="Authentication" name="ai_auth">
+                        <setting string="Authentication Mode"
+                                 help="How users connect Grok: import their Grok login (auth.json from `grok login`) or use an xAI API key.">
+                            <field name="grokoo_auth_mode"/>
+                        </setting>
+                        <setting string="Shared xAI API Key"
+                                 help="Optional fallback API key for users without their own credentials. Leave empty to require per-user credentials.">
+                            <field name="grokoo_api_key" password="True"/>
+                        </setting>
+                    </block>
+                    <block title="Tools &amp; Security" name="ai_security">
+                        <setting string="Enable SQL Reporting Tool"
+                                 help="Read-only SQL for the AI SQL Analyst group.">
+                            <field name="grokoo_sql_enabled"/>
+                        </setting>
+                        <setting string="Zero-Trust by Default (read-only)"
+                                 help="When on, users left on 'Inherit' may only use read-only tools. A per-user override can still allow writes.">
+                            <field name="grokoo_zero_trust_default"/>
+                        </setting>
+                        <setting string="Models Hidden from AI"
+                                 help="The assistant refuses to introspect, read, or write these models for every user.">
+                            <field name="grokoo_excluded_model_ids" widget="many2many_tags"
+                                   placeholder="e.g. res.users, account.move"/>
+                        </setting>
+                        <setting string="AI Action Method Patterns"
+                                 help="fnmatch patterns for methods orm_action/run_wizard may call. Private/dunder methods are always blocked.">
+                            <field name="grokoo_action_method_patterns"
+                                   placeholder="action_*,button_*"/>
+                        </setting>
+                        <setting string="AI-Runnable Server Actions"
+                                 help="Only these server actions may be run via run_server_action. Empty = none. Code actions run arbitrary Python; allowlist only what you trust.">
+                            <field name="grokoo_allowed_server_action_ids" widget="many2many_tags"/>
+                        </setting>
+                        <setting string="Odoo Host URL"
+                                 help="Host URL the MCP bridge connects back to (loopback by default).">
+                            <field name="grokoo_base_url"/>
+                        </setting>
+                        <setting string="Odoo Database"
+                                 help="Database the assistant connects to. Empty = current database.">
+                            <field name="grokoo_db_name" placeholder="current database"/>
+                        </setting>
+                        <setting string="Scratch Directory">
+                            <field name="grokoo_scratch_root"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_ai_settings" model="ir.actions.act_window">
+        <field name="name">AI Assistant Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'grokoo'}</field>
+    </record>
+
+    <menuitem id="menu_ai_settings" name="Settings"
+              parent="menu_ai_root" action="action_ai_settings"
+              sequence="90" groups="group_ai_manager"/>
+
+</odoo>

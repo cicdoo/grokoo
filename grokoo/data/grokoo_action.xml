@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<odoo>
+
+    <!-- Default configuration parameters -->
+    <record id="param_cli_glob" model="ir.config_parameter">
+        <field name="key">grokoo.cli_glob</field>
+        <field name="value">/usr/local/bin/grok</field>
+    </record>
+    <record id="param_home_root" model="ir.config_parameter">
+        <field name="key">grokoo.home_root</field>
+        <field name="value">/var/lib/odoo/grokoo_home</field>
+    </record>
+    <record id="param_scratch_root" model="ir.config_parameter">
+        <field name="key">grokoo.scratch_root</field>
+        <field name="value">/var/lib/odoo/grokoo_scratch</field>
+    </record>
+    <!-- No grokoo.model seed: empty = use the account's default model. -->
+    <record id="param_auth_mode" model="ir.config_parameter">
+        <field name="key">grokoo.auth_mode</field>
+        <field name="value">oauth_import</field>
+    </record>
+    <record id="param_output_format" model="ir.config_parameter">
+        <field name="key">grokoo.output_format</field>
+        <field name="value">streaming-json</field>
+    </record>
+    <record id="param_base_url" model="ir.config_parameter">
+        <field name="key">grokoo.base_url</field>
+        <field name="value">http://127.0.0.1:8069</field>
+    </record>
+    <record id="param_sql_enabled" model="ir.config_parameter">
+        <field name="key">grokoo.sql_enabled</field>
+        <field name="value">True</field>
+    </record>
+
+    <!-- Client action that opens the chat UI -->
+    <record id="action_ai_chat" model="ir.actions.client">
+        <field name="name">Grokoo</field>
+        <field name="tag">grokoo.chat</field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_ai_root" name="Grokoo"
+              web_icon="grokoo,static/description/icon.png"
+              sequence="20" groups="group_ai_user"/>
+    <menuitem id="menu_ai_chat" name="Chat"
+              parent="menu_ai_root" action="action_ai_chat"
+              sequence="10" groups="group_ai_user"/>
+
+    <!-- Cron: reap stuck running sessions and GC old scratch dirs -->
+    <record id="cron_ai_reaper" model="ir.cron">
+        <field name="name">Grokoo: reap stale sessions</field>
+        <field name="model_id" ref="model_grokoo_session"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_reap_stale()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

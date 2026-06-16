@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<templates xml:space="preserve">
+
+    <t t-name="grokoo.ChatAction">
+        <!-- Auth gate: shown until this user connects Grok -->
+        <div t-if="state.authReady and !state.authenticated"
+             class="o_ai_auth d-flex flex-column align-items-center justify-content-center h-100 text-center p-4">
+            <div class="o_ai_auth_card p-4 text-start" style="max-width: 560px;">
+                <div class="text-center">
+                    <i class="fa fa-robot fa-3x text-primary mb-3"/>
+                    <h3 class="mb-2">Connect Grok</h3>
+                </div>
+
+                <ul class="nav nav-pills justify-content-center mb-3">
+                    <li class="nav-item">
+                        <button t-attf-class="nav-link {{ state.authMode === 'oauth_import' ? 'active' : '' }}"
+                                t-on-click="() => this._setAuthMode('oauth_import')">
+                            Grok login (auth.json)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button t-attf-class="nav-link {{ state.authMode === 'api_key' ? 'active' : '' }}"
+                                t-on-click="() => this._setAuthMode('api_key')">
+                            API key
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Import auth.json -->
+                <div t-if="state.authMode === 'oauth_import'">
+                    <p class="text-muted mb-2">
+                        On any machine with a browser, run <code>grok login</code>
+                        (or <code>grok login --device-auth</code> on a headless box)
+                        and sign in, then paste the contents of your
+                        <code>~/.grok/auth.json</code> here. Your own xAI
+                        subscription applies to every chat.
+                    </p>
+                    <textarea class="form-control mb-2" rows="6"
+                              placeholder='{ "...": "contents of ~/.grok/auth.json" }'
+                              t-model="state.credsInput"/>
+                    <button class="btn btn-primary" t-att-disabled="state.authBusy"
+                            t-on-click="_submitImport">
+                        <i class="fa fa-sign-in me-2"/> Connect
+                    </button>
+                </div>
+
+                <!-- API key -->
+                <div t-if="state.authMode === 'api_key'">
+                    <p class="text-muted mb-2">
+                        Paste an xAI API key from the
+                        <a href="https://console.x.ai" target="_blank"
+                           rel="noopener noreferrer">xAI Console</a>. Note: an API
+                        key is billed separately from a Grok subscription.
+                    </p>
+                    <input type="password" class="form-control mb-2"
+                           placeholder="xai-..." t-model="state.apiKeyInput"/>
+                    <button class="btn btn-primary" t-att-disabled="state.authBusy"
+                            t-on-click="_submitKey">
+                        <i class="fa fa-key me-2"/> Save key
+                    </button>
+                </div>
+
+                <div t-if="state.authBusy" class="d-flex align-items-center text-muted mt-2">
+                    <i class="fa fa-spinner fa-spin me-2"/> Saving…
+                </div>
+                <div t-if="state.authError" class="alert alert-danger mt-3 mb-0"
+                     t-esc="state.authError"/>
+            </div>
+        </div>
+
+        <!-- Chat (only once authenticated) -->
+        <div t-if="state.authenticated" class="o_ai_chat d-flex h-100">
+            <!-- Sidebar: conversation list -->
+            <div class="o_ai_sidebar d-flex flex-column border-end">
+                <div class="p-2 border-bottom">
+                    <button class="btn btn-primary w-100" t-on-click="_newSession">
+                        <i class="fa fa-plus me-1"/> New chat
+                    </button>
+                </div>
+                <div class="flex-grow-1 overflow-auto">
+                    <t t-foreach="state.sessions" t-as="s" t-key="s.id">
+                        <div t-attf-class="o_ai_session_item p-2 {{ s.id === state.currentId ? 'active' : '' }}"
+                             t-on-click="() => this._openSession(s.id)">
+                            <i class="fa fa-comment-o me-1"/>
+                            <span t-esc="s.name"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Main: messages + composer -->
+            <div class="o_ai_main d-flex flex-column flex-grow-1">
+                <AiMessageList messages="state.messages" running="state.running"
+                               onOpenArtifact.bind="openArtifact"/>
+                <div t-if="state.running" class="px-2 pb-1">
+                    <button class="btn btn-sm btn-link text-danger" t-on-click="onStop">
+                        <i class="fa fa-stop me-1"/> Stop
+                    </button>
+                </div>
+                <AiComposer onSend.bind="onSend" disabled="state.running"
+                            sessionId="state.currentId"/>
+            </div>
+
+            <!-- Artifact panel: rendered charts/reports, on the far right -->
+            <div t-if="state.artifactOpen and state.artifact"
+                 class="o_ai_artifact d-flex flex-column border-start">
+                <div class="o_ai_artifact_header d-flex align-items-center px-3 py-2 border-bottom">
+                    <i class="fa fa-area-chart me-2"/>
+                    <span class="fw-bold">Preview</span>
+                    <button class="btn btn-sm btn-link ms-auto p-0 me-2"
+                            title="Open in new tab" t-on-click="openArtifactNewTab">
+                        <i class="fa fa-external-link"/>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0" title="Close"
+                            t-on-click="closeArtifact">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+                <div class="o_ai_artifact_body flex-grow-1 overflow-auto p-3">
+                    <ReportFrame html="state.artifact"/>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

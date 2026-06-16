@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<odoo>
+
+    <record id="view_ai_tool_log_list" model="ir.ui.view">
+        <field name="name">grokoo.tool_log.list</field>
+        <field name="model">grokoo.tool_log</field>
+        <field name="arch" type="xml">
+            <list string="AI Tool Calls" create="false" edit="false">
+                <field name="create_date"/>
+                <field name="user_id"/>
+                <field name="tool"/>
+                <field name="model_name"/>
+                <field name="method"/>
+                <field name="outcome"
+                       decoration-success="outcome == 'success'"
+                       decoration-danger="outcome in ('access_denied','error')"
+                       decoration-warning="outcome == 'validation_rejected'"
+                       widget="badge"/>
+                <field name="result_count"/>
+                <field name="duration_ms"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ai_tool_log_form" model="ir.ui.view">
+        <field name="name">grokoo.tool_log.form</field>
+        <field name="model">grokoo.tool_log</field>
+        <field name="arch" type="xml">
+            <form string="AI Tool Call" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="user_id"/>
+                            <field name="session_id"/>
+                            <field name="tool"/>
+                            <field name="outcome"/>
+                        </group>
+                        <group>
+                            <field name="model_name"/>
+                            <field name="method"/>
+                            <field name="record_ids"/>
+                            <field name="result_count"/>
+                            <field name="duration_ms"/>
+                            <field name="client_ip"/>
+                        </group>
+                    </group>
+                    <group string="Arguments">
+                        <field name="arguments" nolabel="1" widget="json"/>
+                    </group>
+                    <group string="SQL" invisible="not sql_text">
+                        <field name="sql_text" nolabel="1"/>
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ai_tool_log_search" model="ir.ui.view">
+        <field name="name">grokoo.tool_log.search</field>
+        <field name="model">grokoo.tool_log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="user_id"/>
+                <field name="tool"/>
+                <field name="model_name"/>
+                <filter name="denied" string="Denied/Errors"
+                        domain="[('outcome','in',('access_denied','error','validation_rejected'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="g_user" string="User" context="{'group_by':'user_id'}"/>
+                    <filter name="g_tool" string="Tool" context="{'group_by':'tool'}"/>
+                    <filter name="g_outcome" string="Outcome" context="{'group_by':'outcome'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ai_tool_log" model="ir.actions.act_window">
+        <field name="name">Tool Call Audit Log</field>
+        <field name="res_model">grokoo.tool_log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ai_tool_log_search"/>
+    </record>
+
+    <menuitem id="menu_ai_tool_log" name="Audit Log"
+              parent="menu_ai_root" action="action_ai_tool_log"
+              sequence="50" groups="group_ai_manager"/>
+
+</odoo>

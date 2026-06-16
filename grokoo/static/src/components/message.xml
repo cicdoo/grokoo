@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<templates xml:space="preserve">
+
+    <t t-name="grokoo.Message">
+        <div t-attf-class="o_ai_msg o_ai_msg_{{props.message.role}} d-flex flex-column mb-3">
+            <div class="o_ai_msg_role small text-muted mb-1">
+                <t t-esc="roleLabel"/>
+            </div>
+
+            <!-- Tool calls: collapsed by default behind a toggle -->
+            <t t-if="toolCalls.length">
+                <div class="o_ai_tools mb-1">
+                    <button type="button"
+                            class="o_ai_tools_toggle btn btn-sm btn-link p-0 d-flex align-items-center small text-muted text-decoration-none"
+                            t-on-click="toggleTools">
+                        <i t-attf-class="fa {{ ui.toolsOpen ? 'fa-caret-down' : 'fa-caret-right' }} me-1"/>
+                        <i t-if="toolsBusy" class="fa fa-spinner fa-spin me-1"/>
+                        <i t-else="" class="fa fa-wrench me-1"/>
+                        <span t-esc="toolCalls.length + (toolCalls.length === 1 ? ' tool call' : ' tool calls')"/>
+                    </button>
+                    <div t-if="ui.toolsOpen" class="o_ai_tools_list mt-1">
+                        <div t-foreach="toolCalls" t-as="call" t-key="call.id"
+                             class="o_ai_tool_chip d-flex align-items-center small">
+                            <i t-attf-class="fa {{statusIcon(call)}} me-1"/>
+                            <span class="fw-bold me-1" t-esc="call.name"/>
+                            <span class="text-muted text-truncate" t-esc="summarizeInput(call)"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Attachment chips (files the user attached to this turn) -->
+            <t t-if="attachments.length">
+                <div class="o_ai_attachments d-flex flex-wrap gap-1 mb-1">
+                    <div t-foreach="attachments" t-as="att" t-key="att.id"
+                         class="o_ai_attachment_chip d-flex align-items-center small">
+                        <i t-attf-class="fa {{ attachmentIcon(att) }} me-1"/>
+                        <span class="text-truncate" t-esc="att.name"/>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Body: plain text for the user; otherwise ordered segments where
+                 embedded HTML (e.g. a CSS/SVG chart) becomes a card that opens
+                 the artifact panel, and the rest renders as markdown. -->
+            <t t-if="props.message.body">
+                <div t-if="props.message.role === 'user'"
+                     class="o_ai_msg_body o_ai_msg_plain" t-esc="props.message.body"/>
+                <t t-else="">
+                    <t t-foreach="segments" t-as="seg" t-key="seg_index">
+                        <button t-if="seg.type === 'html'" type="button"
+                                class="o_ai_artifact_card d-flex align-items-center"
+                                t-on-click="() => this.openArtifact(seg.html)">
+                            <i class="fa fa-area-chart me-2"/>
+                            <span class="fw-bold me-2">Chart</span>
+                            <span class="text-muted small">Click to view</span>
+                            <i class="fa fa-chevron-right ms-auto"/>
+                        </button>
+                        <div t-else="" class="o_ai_msg_body o_ai_md" t-out="seg.html"/>
+                    </t>
+                </t>
+            </t>
+        </div>
+    </t>
+
+</templates>

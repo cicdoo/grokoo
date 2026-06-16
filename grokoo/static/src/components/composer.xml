@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<templates xml:space="preserve">
+
+    <t t-name="grokoo.Composer">
+        <div class="o_ai_composer border-top p-2">
+            <!-- Attachment chips for files queued on the next message -->
+            <div t-if="state.files.length" class="o_ai_attachments d-flex flex-wrap gap-1 mb-2">
+                <div t-foreach="state.files" t-as="f" t-key="f.id"
+                     class="o_ai_attachment_chip d-flex align-items-center small">
+                    <i class="fa fa-paperclip me-1"/>
+                    <span class="text-truncate" t-esc="f.name"/>
+                    <button class="btn btn-sm o_ai_attachment_remove ms-1 p-0"
+                            title="Remove" t-on-click="() => this.removeFile(f.id)">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.error" class="text-danger small mb-1" t-esc="state.error"/>
+
+            <div class="d-flex align-items-end gap-2">
+                <input type="file" class="d-none" t-ref="file" multiple="multiple"
+                       accept=".txt,.csv,.tsv,.json,.xml,.md,.markdown,.rst,.log,.yaml,.yml,.ini,.conf,.cfg,.toml,.env,.py,.js,.ts,.jsx,.tsx,.html,.htm,.css,.scss,.sql,.sh,.c,.h,.cpp,.hpp,.java,.go,.rb,.php,.pdf,.png,.jpg,.jpeg,.gif,.webp,image/*"
+                       t-on-change="onFilesChosen"/>
+                <button class="btn btn-light o_ai_attach"
+                        title="Attach files (text, CSV, code, PDF, images)"
+                        t-att-disabled="props.disabled || state.uploading"
+                        t-on-click="pickFiles">
+                    <i t-attf-class="fa {{ state.uploading ? 'fa-spinner fa-spin' : 'fa-paperclip' }}"/>
+                </button>
+                <textarea t-ref="input"
+                          class="form-control o_ai_composer_input"
+                          rows="1"
+                          placeholder="Ask the assistant…  (Enter to send, Shift+Enter for newline)"
+                          t-model="state.text"
+                          t-on-keydown="onKeydown"
+                          t-on-input="autoGrow"/>
+                <button class="btn btn-primary o_ai_send"
+                        t-att-disabled="!canSend"
+                        t-on-click="_send">
+                    <i class="fa fa-paper-plane"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

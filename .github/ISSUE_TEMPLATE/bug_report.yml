@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a problem with Grokoo
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! Please do **not** report security vulnerabilities
+        here — see [SECURITY.md](../blob/main/SECURITY.md) instead.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Grokoo version, Odoo version, xAI Grok CLI version, OS.
+      placeholder: "Grokoo 18.0.1.0.0, Odoo 18.0, Grok CLI 0.x, Ubuntu 24.04"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the Grokoo chat
+        2. Ask "..."
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Server log lines and/or the session's `last_error`. Redact secrets.
+      render: shell

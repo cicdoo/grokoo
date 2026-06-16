@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<odoo noupdate="0">
+
+    <!-- Tool catalog: kept in sync with READ_TOOLS/WRITE_TOOLS in
+         models/grokoo_session.py. Re-seeded on upgrade. -->
+
+    <!-- Read-only tools -->
+    <record id="tool_model_introspect" model="grokoo.tool">
+        <field name="name">model_introspect</field>
+        <field name="label">Inspect model fields &amp; access</field>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="tool_orm_search_read" model="grokoo.tool">
+        <field name="name">orm_search_read</field>
+        <field name="label">Search &amp; read records</field>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="tool_orm_read" model="grokoo.tool">
+        <field name="name">orm_read</field>
+        <field name="label">Read records by id</field>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="tool_orm_call" model="grokoo.tool">
+        <field name="name">orm_call</field>
+        <field name="label">Call read-only model methods</field>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="tool_sql_select" model="grokoo.tool">
+        <field name="name">sql_select</field>
+        <field name="label">Read-only SQL reporting</field>
+        <field name="readonly" eval="True"/>
+    </record>
+
+    <!-- Write tools -->
+    <record id="tool_orm_create" model="grokoo.tool">
+        <field name="name">orm_create</field>
+        <field name="label">Create records</field>
+        <field name="readonly" eval="False"/>
+    </record>
+    <record id="tool_orm_write" model="grokoo.tool">
+        <field name="name">orm_write</field>
+        <field name="label">Update records</field>
+        <field name="readonly" eval="False"/>
+    </record>
+    <record id="tool_orm_unlink" model="grokoo.tool">
+        <field name="name">orm_unlink</field>
+        <field name="label">Delete records</field>
+        <field name="readonly" eval="False"/>
+    </record>
+
+    <!-- Action tools: invoke business logic (allowlisted methods/wizards/server actions) -->
+    <record id="tool_orm_action" model="grokoo.tool">
+        <field name="name">orm_action</field>
+        <field name="label">Run model action method</field>
+        <field name="readonly" eval="False"/>
+    </record>
+    <record id="tool_run_wizard" model="grokoo.tool">
+        <field name="name">run_wizard</field>
+        <field name="label">Run a wizard</field>
+        <field name="readonly" eval="False"/>
+    </record>
+    <record id="tool_run_server_action" model="grokoo.tool">
+        <field name="name">run_server_action</field>
+        <field name="label">Run a server action</field>
+        <field name="readonly" eval="False"/>
+    </record>
+
+    <!-- Built-in web tools: Grok's native web_fetch / web_search. Opt-in per
+         user; never auto-granted. Read-only (no Odoo data mutation). -->
+    <record id="tool_web_fetch" model="grokoo.tool">
+        <field name="name">web_fetch</field>
+        <field name="label">Fetch a web page (URL)</field>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="tool_web_search" model="grokoo.tool">
+        <field name="name">web_search</field>
+        <field name="label">Search the web</field>
+        <field name="readonly" eval="True"/>
+    </record>
+
+</odoo>

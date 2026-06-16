@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203, W503
+exclude = .git, __pycache__, */migrations/*
+# Package __init__ files exist to re-export submodules for discovery.
+per-file-ignores =
+    */tests/__init__.py:F401

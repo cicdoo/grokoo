@@ -1,0 +1,102 @@
+<section class="oe_container">
+  <div class="oe_row oe_spaced" style="text-align:center;">
+    <h1 class="oe_slogan" style="color:#714B67;">Grokoo</h1>
+    <h2 class="oe_slogan">Chat with your Odoo — safely.</h2>
+    <p class="oe_mt32" style="max-width:760px;margin:0 auto;font-size:16px;">
+      An in-Odoo AI assistant powered by the xAI Grok CLI. It answers questions,
+      queries your data, and builds reports — running as the <b>logged-in user</b>,
+      <b>never as superuser</b>, with a full audit trail.
+    </p>
+  </div>
+</section>
+
+<section class="oe_container oe_dark">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan">Security first — by design</h2>
+    <div class="oe_span6">
+      <h3 class="oe_slogan" style="text-align:left;">🔒 Runs as the user</h3>
+      <p class="oe_mt16">
+        Every ORM action executes with <code>su=False</code>. The user's access
+        rights and record rules are enforced automatically — the model can never
+        see or do more than the person using it.
+      </p>
+      <h3 class="oe_slogan" style="text-align:left;">🧮 Read-only SQL, really</h3>
+      <p class="oe_mt16">
+        <code>sql_select</code> is double-guarded: a SELECT-only validator plus
+        Postgres <code>SET TRANSACTION READ ONLY</code> and a statement timeout,
+        gated to a dedicated <i>AI SQL Analyst</i> group.
+      </p>
+    </div>
+    <div class="oe_span6">
+      <h3 class="oe_slogan" style="text-align:left;">🧾 Full audit log</h3>
+      <p class="oe_mt16">
+        Every tool call — model, method, SQL, row counts, outcome, even denials —
+        is written to an immutable log on a separate committed cursor, so it
+        survives rollbacks.
+      </p>
+      <h3 class="oe_slogan" style="text-align:left;">🔑 Per-user credentials</h3>
+      <p class="oe_mt16">
+        Each user connects with their own credentials — importing their Grok
+        login (so their own <b>xAI subscription</b> applies) or an xAI API
+        key. No shared key required; credentials are stored per user in a
+        private <code>.grok</code> dir (mode <code>0600</code>), never in the
+        database.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan">Sandboxed. No surprises.</h2>
+    <p class="oe_mt16" style="max-width:760px;margin:0 auto;text-align:center;">
+      Grok runs headless with its built-in shell/write/network tools withheld,
+      so it can't reach the shell, filesystem, or network on its own. The model acts
+      <b>only</b> through a small set of Odoo tools over a loopback bridge that holds
+      <i>no database credentials</i> — just a short-lived, session-scoped capability
+      token. Replies and tool activity stream into the chat in real time over the
+      Odoo bus.
+    </p>
+  </div>
+</section>
+
+<section class="oe_container oe_dark">
+  <div class="oe_row oe_spaced">
+    <h2 class="oe_slogan">What it can do</h2>
+    <div class="oe_span6">
+      <ul style="font-size:15px;line-height:1.8;">
+        <li>Answer questions about your records in natural language</li>
+        <li>Search, read, and group data with the user's permissions</li>
+        <li>Run read-only SQL reports (for the SQL Analyst group)</li>
+        <li>Stream answers and tool steps live into the chat</li>
+      </ul>
+    </div>
+    <div class="oe_span6">
+      <ul style="font-size:15px;line-height:1.8;">
+        <li>Opt-in, per-user write tools (create / write / unlink / actions)</li>
+        <li>Zero-trust mode to strip writes globally or per user</li>
+        <li>Manager audit log of every tool call and denial</li>
+        <li>Per-user Grok credentials — no shared key</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="oe_container">
+  <div class="oe_row oe_spaced" style="text-align:center;">
+    <h2 class="oe_slogan">Open source &amp; supported</h2>
+    <p class="oe_mt16" style="max-width:720px;margin:0 auto;">
+      Grokoo is free and open source under <b>LGPL-3.0</b>. Managed hosting,
+      priority support, custom tools, and commercial licensing are available from
+      <a href="https://cicdoo.com">CICDoo</a>.
+    </p>
+    <p class="oe_mt32">
+      <a class="btn btn-primary btn-lg" href="https://cicdoo.com">Get support</a>
+    </p>
+    <p class="oe_mt16" style="color:#888;font-size:13px;">
+      Grokoo wraps xAI's Grok CLI. "Grok" and "xAI"
+      are trademarks of X.AI Corp. Grokoo is an independent community project and
+      is not affiliated with or endorsed by X.AI Corp.
+    </p>
+  </div>
+</section>

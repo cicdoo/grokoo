@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest an idea for Grokoo
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or pain point.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Security
+      options:
+        - label: This request keeps Grokoo's "act as the user, never superuser" model intact.

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 CICDoo (https://cicdoo.com)
+     SPDX-License-Identifier: LGPL-3.0-or-later OR LicenseRef-Grokoo-Commercial
+     Dual-licensed: open source (LGPL-3, see LICENSE) or commercial (see COMMERCIAL_LICENSE.md). -->
+<templates xml:space="preserve">
+
+    <t t-name="grokoo.MessageList">
+        <div class="o_ai_message_list flex-grow-1 overflow-auto p-3" t-ref="scroll">
+            <t t-if="!props.messages.length">
+                <div class="o_ai_empty text-center text-muted mt-5">
+                    <i class="fa fa-comments fa-3x mb-3 d-block"/>
+                    <div>Ask me to query data or build a report.</div>
+                </div>
+            </t>
+            <t t-foreach="props.messages" t-as="msg" t-key="msg.id">
+                <AiMessage message="msg" onOpenArtifact="props.onOpenArtifact"/>
+            </t>
+            <div t-if="props.running" class="o_ai_typing small text-muted">
+                <i class="fa fa-spinner fa-spin me-1"/> Assistant is working…
+            </div>
+        </div>
+    </t>
+
+</templates>

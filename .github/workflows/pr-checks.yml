@@ -1,0 +1,103 @@
+name: PR checks
+
+# Enforced contribution gates for community pull requests. Each job below is a
+# separate status check; mark them "required" in branch protection to block merge.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require a CHANGELOG.md update
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qx 'CHANGELOG.md'; then
+            echo "CHANGELOG.md updated ✓"
+          else
+            echo "::error::This PR must update CHANGELOG.md (add a bullet under '## [Unreleased]'). A maintainer can apply the 'skip-changelog' label for trivial PRs."
+            exit 1
+          fi
+
+  dco:
+    name: dco
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify Signed-off-by on every commit
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          fail=0
+          for sha in $(git rev-list --no-merges "origin/${{ github.base_ref }}..HEAD"); do
+            if ! git log -1 --format='%(trailers:key=Signed-off-by)' "$sha" | grep -qiE '<.+@.+>'; then
+              subject=$(git log -1 --format='%s' "$sha")
+              echo "::error::Commit $sha (\"$subject\") is missing a Signed-off-by line."
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Fix with: git commit -s --amend   (single commit)"
+            echo "       or: git rebase --signoff origin/${{ github.base_ref }}   (several)"
+            exit 1
+          fi
+          echo "All commits signed off ✓"
+
+  security-doc:
+    name: security-doc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require SECURITY.md when touching safety-critical paths
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'security-reviewed') }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          sensitive=$(printf '%s\n' "$changed" | grep -E '(/controllers/(tools|main)\.py$|/models/ir_http\.py$|/models/[^/]*_session\.py$|/models/[^/]*_tool\.py$|/bridge/|/security/)' || true)
+          if [ -n "$sensitive" ]; then
+            echo "Safety-critical files changed:"; printf '%s\n' "$sensitive"
+            if printf '%s\n' "$changed" | grep -qx 'SECURITY.md'; then
+              echo "SECURITY.md updated ✓"
+            else
+              echo "::error::This PR changes safety-critical files but does not update SECURITY.md. Update SECURITY.md to reflect the change, or have a maintainer add the 'security-reviewed' label."
+              exit 1
+            fi
+          else
+            echo "No safety-critical paths touched ✓"
+          fi
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install flake8
+      - name: flake8 on changed Python files
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          files=$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" \
+                   | grep -E '\.py$' | grep -vE '(/migrations/|__pycache__)' || true)
+          if [ -z "$files" ]; then echo "No Python files changed ✓"; exit 0; fi
+          echo "Linting:"; printf '%s\n' "$files"
+          printf '%s\n' "$files" | xargs flake8
